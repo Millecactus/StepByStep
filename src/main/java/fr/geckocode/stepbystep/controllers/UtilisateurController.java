@@ -1,0 +1,84 @@
+package fr.geckocode.stepbystep.controllers;
+
+import fr.geckocode.stepbystep.entities.ChoregraphieDeStep;
+import fr.geckocode.stepbystep.entities.Role;
+import fr.geckocode.stepbystep.entities.Utilisateur;
+import fr.geckocode.stepbystep.entities.dto.AjouterRolesUtilisateurRequest;
+import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
+import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
+import fr.geckocode.stepbystep.entities.dto.UtilisateurReponseDTO;
+import fr.geckocode.stepbystep.repositories.RoleRepository;
+import fr.geckocode.stepbystep.services.IAuthentificationService;
+import fr.geckocode.stepbystep.services.IUtilisateurService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/v1/utilisateur")
+@RequiredArgsConstructor
+public class UtilisateurController {
+
+    private final IUtilisateurService utilisateurService;
+    private final IAuthentificationService authentificationService;
+    private final RoleRepository roleRepository;
+
+
+    @GetMapping("/hello")
+    public String sayHello(){
+        return "Hello world";
+    }
+
+    @PostMapping(value = "/inscription", consumes = "application/json")
+    public ResponseEntity<UtilisateurReponseDTO> inscription(@RequestBody UtilisateurDTO dto) {
+        return authentificationService.inscription(dto);
+    }
+
+    @PostMapping (value = "/connexion", consumes = "application/json")
+    public ResponseEntity<UtilisateurReponseDTO> connexion (@RequestBody LoginRequestDTO dto){
+        return authentificationService.connexion(dto);
+    }
+
+
+    @GetMapping(value = "/obtenir/{id}")
+    public ResponseEntity<Utilisateur> obtenirUtilisateur(@PathVariable Integer id){
+        Utilisateur utilisateurObtenu = utilisateurService.obtenirUtilisateur(id);
+        return  ResponseEntity.ok(utilisateurObtenu);
+    }
+
+    @PostMapping(value ="/supprimer/{id}")
+    public void supprimerUtilisateur(@PathVariable Integer id){
+        utilisateurService.supprimerUtilisateur(id);
+    }
+
+    @GetMapping(value ="/utilisateurs")
+    public List <UtilisateurDTO> obtenirListeUtilisateur(){
+      return utilisateurService.obtenirListeUtilisateur();
+    }
+
+    @GetMapping("/choregraphies/utilisateur/{nom}")
+    public List<ChoregraphieDeStep> getChoregraphiesParUtilisateur(@PathVariable String nom) {
+        return utilisateurService.obtenirListeChoregraphieParNomUtilisateur(nom);
+    }
+
+    @PostMapping("/ajouter-roles")
+    public ResponseEntity<?> ajouterRolesUtilisateur(@RequestBody AjouterRolesUtilisateurRequest request) {
+
+
+        // Récupérer l'utilisateur par email ou id
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setEmail(request.getEmail());
+
+        // Récupérer les rôles existants en base à partir des noms reçus
+        List<Role> roles = request.getRoles().stream()
+                .map(roleRepository::findByNomRole)
+                .collect(Collectors.toList());
+
+        utilisateurService.ajouterRoleUtilisateur(utilisateur, roles);
+
+        return ResponseEntity.ok("Rôles ajoutés à l'utilisateur " + request.getEmail());
+    }
+}
+

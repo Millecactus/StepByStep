@@ -1,0 +1,43 @@
+package fr.geckocode.stepbystep.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "choregraphie_de_step")
+public class ChoregraphieDeStep extends Cours implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    // L'ID est déjà défini dans la classe parente
+
+    @Column(name = "nom_script", length = 50)
+    private String nomScript;
+
+    @Column(name = "nombre_total_mouvement")
+    private Short nombreTotalMouvement; //short = SmallInt
+
+    @Column (name = "script_symetrique")
+    private boolean scriptSymetrique;
+
+    @Column(name = "niveau", length = 50)
+    private String niveau;
+
+    @Column(name = "duree_totale")
+    private Short dureeTotale;
+
+    @Column(name = "date_creation", nullable = false)
+    private LocalDate dateCreation;
+
+    @OneToMany(mappedBy = "choregraphieDeStep")
+    private List<Bloc> listeBlocs= new ArrayList<>(); //eviter les NullPointerException
+
+}
