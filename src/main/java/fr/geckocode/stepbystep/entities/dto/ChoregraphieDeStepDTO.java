@@ -25,4 +25,7 @@ public class ChoregraphieDeStepDTO {
     @NonNull
     private LocalDate dateCreation;
 
+    private Integer bpm;
+
+
 }

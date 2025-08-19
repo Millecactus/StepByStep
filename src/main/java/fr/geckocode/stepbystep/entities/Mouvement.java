@@ -1,5 +1,6 @@
 package fr.geckocode.stepbystep.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,7 @@ public class Mouvement {
 
     @ManyToOne
     @JoinColumn(name = "id_bloc")
+    @JsonBackReference
     private Bloc bloc;
 
 }

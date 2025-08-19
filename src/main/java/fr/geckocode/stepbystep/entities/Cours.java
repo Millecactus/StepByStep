@@ -1,5 +1,6 @@
 package fr.geckocode.stepbystep.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,8 +23,9 @@ public abstract class Cours {
     @Column(name = "titre", length = 50)
     private String titre;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_utilisateur")
+    @JsonBackReference
     private Utilisateur utilisateur;
 
 }

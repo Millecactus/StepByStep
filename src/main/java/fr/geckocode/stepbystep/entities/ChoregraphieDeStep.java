@@ -1,5 +1,6 @@
 package fr.geckocode.stepbystep.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "choregraphie_de_step")
+@PrimaryKeyJoinColumn(name = "id_cours")
 public class ChoregraphieDeStep extends Cours implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -37,7 +39,11 @@ public class ChoregraphieDeStep extends Cours implements Serializable {
     @Column(name = "date_creation", nullable = false)
     private LocalDate dateCreation;
 
-    @OneToMany(mappedBy = "choregraphieDeStep")
-    private List<Bloc> listeBlocs= new ArrayList<>(); //eviter les NullPointerException
+    @OneToMany(mappedBy = "choregraphieDeStep",cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Bloc> listeBlocs= new ArrayList<>();
+
+    @Column(name = "BPM")
+    private Integer bpm;
 
 }

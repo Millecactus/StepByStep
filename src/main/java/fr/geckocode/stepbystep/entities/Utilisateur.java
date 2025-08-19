@@ -1,5 +1,6 @@
 package fr.geckocode.stepbystep.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,7 @@ public class Utilisateur implements Serializable, UserDetails{
 
     //La gestion des cours est gerée par l'Entité Utilisateur ( ex:suppression d’un utilisateur supprime aussi ses cours )
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // ← coupe totalement la sérialisation côté User
     private List<Cours> cours = new ArrayList<>();
 
     //Chargement EAGER (par Defaut LAZY) = on veut que les roles soit chargés directement lorsque l utilisateur est identifié
@@ -57,12 +59,12 @@ public class Utilisateur implements Serializable, UserDetails{
 
     @Override
     public String getPassword() {
-        return "";
+        return motDePasse;
     }
 
     @Override
     public String getUsername() {
-        return "";
+        return email;
     }
 
     @Override

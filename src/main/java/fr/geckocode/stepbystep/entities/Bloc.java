@@ -1,5 +1,7 @@
 package fr.geckocode.stepbystep.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.ArrayList;
@@ -29,9 +31,11 @@ public class Bloc {
 
     @ManyToOne
     @JoinColumn(name = "id_cours")
+    @JsonBackReference
     private ChoregraphieDeStep choregraphieDeStep;
 
-    @OneToMany(mappedBy = "bloc")
+    @OneToMany(mappedBy = "bloc", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Mouvement> listeMouvements = new ArrayList<>();
 
 }
