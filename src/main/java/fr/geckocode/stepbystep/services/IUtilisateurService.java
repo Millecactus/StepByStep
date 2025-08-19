@@ -14,11 +14,11 @@ public interface IUtilisateurService {
 
      List<UtilisateurDTO> obtenirListeUtilisateur();
 
-     List<ChoregraphieDeStep> obtenirListeChoregraphieParNomUtilisateur(String nomUtilisateur);
 
      Role ajouterRole(Role role);
 
      void ajouterRoleUtilisateur(Utilisateur utilisateur, List<Role> listeRole);
 
+    Utilisateur obtenirParEmail(String email);
 }
 

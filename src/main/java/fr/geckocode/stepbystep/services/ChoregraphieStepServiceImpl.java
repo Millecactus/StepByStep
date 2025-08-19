@@ -5,7 +5,6 @@ import fr.geckocode.stepbystep.entities.dto.ChoregraphieDeStepDTO;
 import fr.geckocode.stepbystep.exceptions.ChoregraphieNonTrouveException;
 import fr.geckocode.stepbystep.mappers.MapperTool;
 import fr.geckocode.stepbystep.repositories.ChoregraphieStepRepository;
-import fr.geckocode.stepbystep.services.IChoregraphieStepService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -16,6 +15,7 @@ public class ChoregraphieStepServiceImpl implements IChoregraphieStepService {
 
     private final ChoregraphieStepRepository repository;
     private final MapperTool mapperTool;
+    private final ChoregraphieStepRepository choregraphieStepRepository;
 
 
     @Override
@@ -24,10 +24,10 @@ public class ChoregraphieStepServiceImpl implements IChoregraphieStepService {
     }
 
     @Override
-    public ChoregraphieDeStep creationChoregraphieDeStep(ChoregraphieDeStepDTO dto) {
-        ChoregraphieDeStep choregraphieDeStep = mapperTool.convertirDtoEnEntite(dto, ChoregraphieDeStep.class);
+    public ChoregraphieDeStep creationChoregraphieDeStep(ChoregraphieDeStep choregraphieDeStep) {
         return repository.save(choregraphieDeStep);
     }
+
 
     @Override
     public void supprimerChoregraphieParId(Integer id) {
@@ -39,4 +39,11 @@ public class ChoregraphieStepServiceImpl implements IChoregraphieStepService {
         return repository.findById(id)
                 .orElseThrow(() -> new ChoregraphieNonTrouveException("Chorégraphie avec l'identifiant " + id + " non trouvée"));
     }
+
+    @Override
+    public List<ChoregraphieDeStep> findByUtilisateurIdUtilisateur(Integer id) {
+        return repository.findByUtilisateurIdUtilisateur(id);
+    }
+
+
 }

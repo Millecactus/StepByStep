@@ -7,15 +7,22 @@ import fr.geckocode.stepbystep.entities.dto.AjouterRolesUtilisateurRequest;
 import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurReponseDTO;
+import fr.geckocode.stepbystep.mappers.MapperTool;
 import fr.geckocode.stepbystep.repositories.RoleRepository;
 import fr.geckocode.stepbystep.services.IAuthentificationService;
 import fr.geckocode.stepbystep.services.IUtilisateurService;
+import fr.geckocode.stepbystep.services.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/utilisateur")
 @RequiredArgsConstructor
@@ -24,7 +31,7 @@ public class UtilisateurController {
     private final IUtilisateurService utilisateurService;
     private final IAuthentificationService authentificationService;
     private final RoleRepository roleRepository;
-
+    private final JwtService jwtService;
 
     @GetMapping("/hello")
     public String sayHello(){
@@ -53,15 +60,20 @@ public class UtilisateurController {
         utilisateurService.supprimerUtilisateur(id);
     }
 
-    @GetMapping(value ="/utilisateurs")
-    public List <UtilisateurDTO> obtenirListeUtilisateur(){
-      return utilisateurService.obtenirListeUtilisateur();
+    @GetMapping("/current-id")
+    public Integer getCurrentUserId(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("JWT manquant ou invalide");
+        }
+
+        String jwt = authHeader.substring(7);
+
+        // Appel correct à la méthode extractClaim depuis le service JwtService
+        return jwtService.extractClaim(jwt, claims -> claims.get("idUtilisateur", Integer.class));
     }
 
-    @GetMapping("/choregraphies/utilisateur/{nom}")
-    public List<ChoregraphieDeStep> getChoregraphiesParUtilisateur(@PathVariable String nom) {
-        return utilisateurService.obtenirListeChoregraphieParNomUtilisateur(nom);
-    }
+
 
     @PostMapping("/ajouter-roles")
     public ResponseEntity<?> ajouterRolesUtilisateur(@RequestBody AjouterRolesUtilisateurRequest request) {
@@ -80,5 +92,13 @@ public class UtilisateurController {
 
         return ResponseEntity.ok("Rôles ajoutés à l'utilisateur " + request.getEmail());
     }
+
+    @PostMapping("/deconnexion")
+    public ResponseEntity<String> logout() {
+        // En stateless, rien à invalider côté backend
+        // Le front devra supprimer le token
+        return ResponseEntity.ok("Déconnexion effectuée. Merci de supprimer le token côté client.");
+    }
+
 }
 

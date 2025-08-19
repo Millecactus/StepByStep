@@ -1,14 +1,13 @@
 package fr.geckocode.stepbystep.services;
 
-import fr.geckocode.stepbystep.securite.CustomPasswordEncoder;
 import fr.geckocode.stepbystep.entities.Utilisateur;
 import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
+import fr.geckocode.stepbystep.entities.dto.UtilisateurDTOSansMdp;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurReponseDTO;
 import fr.geckocode.stepbystep.mappers.MapperTool;
 import fr.geckocode.stepbystep.repositories.UtilisateurRepository;
-import fr.geckocode.stepbystep.services.IAuthentificationService;
-import fr.geckocode.stepbystep.services.JwtService;
+import fr.geckocode.stepbystep.securite.CustomPasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +77,8 @@ public class AuthentificationServiceImpl implements IAuthentificationService {
                     .headers(reponseEntete)
                     .body(UtilisateurReponseDTO.builder()
                             .message("Utilisateur authentifié avec succes ! ")
+                            .token(jwtToken)
+                            .utilisateur(mapperTool.convertirEntiteEnDto(utilisateur, UtilisateurDTOSansMdp.class))
                             .build());
     }
 

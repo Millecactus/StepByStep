@@ -9,7 +9,6 @@ import fr.geckocode.stepbystep.mappers.MapperTool;
 import fr.geckocode.stepbystep.repositories.ChoregraphieStepRepository;
 import fr.geckocode.stepbystep.repositories.RoleRepository;
 import fr.geckocode.stepbystep.repositories.UtilisateurRepository;
-import fr.geckocode.stepbystep.services.IUtilisateurService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -48,10 +47,8 @@ public class UtilisateurServiceImpl implements IUtilisateurService, UserDetailsS
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<ChoregraphieDeStep> obtenirListeChoregraphieParNomUtilisateur(String nomUtilisateur) {
-        return choregraphieStepRepository.findByUtilisateurNom(nomUtilisateur);
-    }
+
+
 
     @Override
     public Role ajouterRole(Role role) {
@@ -73,6 +70,11 @@ public class UtilisateurServiceImpl implements IUtilisateurService, UserDetailsS
     }
 
     @Override
+    public Utilisateur obtenirParEmail(String email) {
+        return null;
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
@@ -82,5 +84,8 @@ public class UtilisateurServiceImpl implements IUtilisateurService, UserDetailsS
                 Collections.emptyList()
         );
     }
+
+
+
 }
 

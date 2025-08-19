@@ -1,5 +1,6 @@
 package fr.geckocode.stepbystep.services;
 
+import fr.geckocode.stepbystep.entities.Utilisateur;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -41,6 +42,16 @@ public class JwtService {
         }
         // Ajoute la liste des rôles (ou autorités) dans les claims sous la clé "roles"
         claims.put("roles", roles);
+
+
+        // Ajout de l'ID utilisateur
+        // ⚠️ Ici il faut accéder à ton implémentation personnalisée de UserDetails
+        // pour récupérer l'id en base
+        if (userDetail instanceof Utilisateur utilisateur) {
+            claims.put("idUtilisateur", utilisateur.getIdUtilisateur());
+
+        }
+
 
         // Ajoute tous les claims supplémentaires passés en paramètre à la map
         claims.putAll(extraClaims);

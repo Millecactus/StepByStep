@@ -8,9 +8,12 @@ public interface IChoregraphieStepService {
 
     List<ChoregraphieDeStepDTO> obtenirListeChoreghraphieStep();
 
-    ChoregraphieDeStep creationChoregraphieDeStep(ChoregraphieDeStepDTO dto);
+    ChoregraphieDeStep creationChoregraphieDeStep(ChoregraphieDeStep choregraphieDeStep);
 
     void supprimerChoregraphieParId(Integer id);
 
     ChoregraphieDeStep obtenirChoregaphieParId(Integer id);
+
+    List<ChoregraphieDeStep> findByUtilisateurIdUtilisateur(Integer id);
+
 }

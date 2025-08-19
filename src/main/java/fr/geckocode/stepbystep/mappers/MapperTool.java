@@ -12,8 +12,13 @@ public class MapperTool {
         return mapper.map(dto, entityClass);
     }
 
+
+//    public <E, D> D convertirEntiteEnDto(E entity, Class<D> dtoClass) {
+//        return mapper.map(entity, dtoClass);
+//    }
+
     // Entité --> DTO (générique)
-    public <E, D> D convertirEntiteEnDto(E entity, Class<D> dtoClass) {
+    public <D> D convertirEntiteEnDto(Object entity, Class<D> dtoClass) {
         return mapper.map(entity, dtoClass);
     }
 

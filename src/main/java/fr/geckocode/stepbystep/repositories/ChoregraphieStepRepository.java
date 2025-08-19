@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 public interface ChoregraphieStepRepository extends JpaRepository <ChoregraphieDeStep, Integer> {
 
-    List<ChoregraphieDeStep> findByUtilisateurNom(String nom);
+    List<ChoregraphieDeStep> findByUtilisateurIdUtilisateur(Integer id);
+
 }
