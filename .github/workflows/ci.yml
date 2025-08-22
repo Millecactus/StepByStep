@@ -8,7 +8,7 @@ jobs:
 
     services:
       sonarqube:
-        image: sonarqube:latest
+        image: sonarqube:lts
         ports:
           - 9000:9000
         options: >-
