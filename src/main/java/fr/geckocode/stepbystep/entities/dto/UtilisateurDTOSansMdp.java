@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 public class UtilisateurDTOSansMdp {
 
     // DTO output sans Mot de passe
-    private String nom;
-    private String prenom;
-    private String email;
+    public String nom;
+    public String prenom;
+    public String email;
 
 
 }

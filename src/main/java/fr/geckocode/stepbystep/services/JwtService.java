@@ -2,6 +2,7 @@ package fr.geckocode.stepbystep.services;
 
 import fr.geckocode.stepbystep.entities.Utilisateur;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -18,7 +19,7 @@ public class JwtService {
 
     //recupere la variable declacrée dans le application.properties
     @Value("${spring.jwt.security.key}")
-    private String secretKey;
+    public String secretKey;
 
     public String generateToken(UserDetails userDetails){
         return generateToken(new HashMap<>(), userDetails);
@@ -31,7 +32,7 @@ public class JwtService {
      * @param userDetail     Les informations de l'utilisateur authentifié, nécessaires pour le sujet et les rôles.
      * @return               La chaîne du JWT signé et prêt à être transmis au client.
      */
-    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetail) {
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetail) {
         // On prépare la map où seront stockées toutes les données à inclure dans le JWT (claims)
         Map<String, Object> claims = new HashMap<>();
 
@@ -79,7 +80,7 @@ public class JwtService {
      *
      * @return Key utilisée pour signer et vérifier les tokens JWT.
      */
-    private SecretKey getSignInKey() {
+    public SecretKey getSignInKey() {
         // Décodage Base64 de la clé secrète afin d’obtenir le tableau d’octets original
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 
@@ -111,8 +112,14 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String jwt, UserDetails userDetails){
-        final String username = extractUsername(jwt);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(jwt));
+        try {
+            final String username = extractUsername(jwt);
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(jwt));
+        } catch (ExpiredJwtException e) {
+            return false; // Token expiré => non valide
+        }
+/*        final String username = extractUsername(jwt);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(jwt));*/
     }
 
     private boolean isTokenExpired(String jwt) {

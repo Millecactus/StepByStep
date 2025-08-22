@@ -1,13 +1,12 @@
 package fr.geckocode.stepbystep.controllers;
 
-import fr.geckocode.stepbystep.entities.ChoregraphieDeStep;
 import fr.geckocode.stepbystep.entities.Role;
 import fr.geckocode.stepbystep.entities.Utilisateur;
 import fr.geckocode.stepbystep.entities.dto.AjouterRolesUtilisateurRequest;
 import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurReponseDTO;
-import fr.geckocode.stepbystep.mappers.MapperTool;
+import fr.geckocode.stepbystep.enums.NomRole;
 import fr.geckocode.stepbystep.repositories.RoleRepository;
 import fr.geckocode.stepbystep.services.IAuthentificationService;
 import fr.geckocode.stepbystep.services.IUtilisateurService;
@@ -15,10 +14,8 @@ import fr.geckocode.stepbystep.services.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,24 +71,18 @@ public class UtilisateurController {
     }
 
 
-
     @PostMapping("/ajouter-roles")
     public ResponseEntity<?> ajouterRolesUtilisateur(@RequestBody AjouterRolesUtilisateurRequest request) {
-
-
-        // Récupérer l'utilisateur par email ou id
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(request.getEmail());
-
-        // Récupérer les rôles existants en base à partir des noms reçus
         List<Role> roles = request.getRoles().stream()
-                .map(roleRepository::findByNomRole)
+                .map(role -> roleRepository.findByNomRole(role)) // Pas besoin de valueOf ou String.valueOf
                 .collect(Collectors.toList());
-
         utilisateurService.ajouterRoleUtilisateur(utilisateur, roles);
-
         return ResponseEntity.ok("Rôles ajoutés à l'utilisateur " + request.getEmail());
     }
+
+
 
     @PostMapping("/deconnexion")
     public ResponseEntity<String> logout() {

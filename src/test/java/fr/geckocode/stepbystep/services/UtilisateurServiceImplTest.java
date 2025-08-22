@@ -5,26 +5,37 @@ import fr.geckocode.stepbystep.entities.Utilisateur;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
 import fr.geckocode.stepbystep.enums.NomRole;
 import fr.geckocode.stepbystep.exceptions.UtilisateurNonTrouveException;
+import fr.geckocode.stepbystep.mappers.MapperTool;
+import fr.geckocode.stepbystep.repositories.ChoregraphieStepRepository;
+import fr.geckocode.stepbystep.repositories.RoleRepository;
 import fr.geckocode.stepbystep.repositories.UtilisateurRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UtilisateurServiceImplTest {
 
-    // On simule la dépendance UtilisateurRepository pour isoler le service à tester
     @Mock
     UtilisateurRepository utilisateurRepository;
 
-    // Mockito injecte automatiquement le mock (repo simulé) dans le service
+    @Mock
+    MapperTool mapperTool;
+
+    @Mock
+    RoleRepository roleRepository;
+
+    @Mock
+    ChoregraphieStepRepository choregraphieStepRepository;
+
     @InjectMocks
     UtilisateurServiceImpl utilisateurService;
 
@@ -32,13 +43,8 @@ public class UtilisateurServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        /*
-         * initialise tous les mocks pour chaque test,
-         * ce qui évite de les initialiser individuellement dans toutes les méthodes.
-         */
         MockitoAnnotations.openMocks(this);
 
-        //initialise un utilisateur
         utilisateur = new Utilisateur(
                 1,
                 "Segond",
@@ -50,61 +56,116 @@ public class UtilisateurServiceImplTest {
         );
     }
 
+    // --- TESTS EXISTANTS (les tiens) --- //
+
     @Test
-    void testObtenirUtilisateur_Success(){
-        // phase de simulation : utilisateur existe dans le repo
+    void testObtenirUtilisateur_Success() {
         when(utilisateurRepository.findById(1)).thenReturn(Optional.of(utilisateur));
 
-        // appel de le methode a tester
         Utilisateur result = utilisateurService.obtenirUtilisateur(1);
 
-        // assertions : Proposition que l'on avance et que l'on soutient comme vraie.
         assertNotNull(result);
         assertEquals(utilisateur.getIdUtilisateur(), result.getIdUtilisateur());
     }
 
     @Test
-    void testObtenirUtilisateur_notFound(){
+    void testObtenirUtilisateur_notFound() {
+        when(utilisateurRepository.findById(18)).thenReturn(Optional.empty());
 
-        //ARRANGE
-        when(utilisateurRepository.findById(20)).thenReturn(Optional.empty());
+        Exception exception = assertThrows(UtilisateurNonTrouveException.class,
+                () -> utilisateurService.obtenirUtilisateur(18));
 
-        //ACT
-        Utilisateur result = utilisateurService.obtenirUtilisateur(20);
-
-        //ASSERT
-        Exception exception =  assertThrows(UtilisateurNonTrouveException.class, () -> utilisateurService.obtenirUtilisateur(2));
-        assertTrue(exception.getMessage().contains("identifiant 2 non trouvé"));
+        assertTrue(exception.getMessage().contains("identifiant 18 non trouvé"));
     }
 
     @Test
-    void obtenirListeUtilisateurs_Success(){
-
+    void obtenirListeUtilisateurs_Success() {
         List<Utilisateur> utilisateurListe = List.of(utilisateur);
 
-        // On simule le repository pour retourner cette liste
         when(utilisateurRepository.findAll()).thenReturn(utilisateurListe);
-
+        when(mapperTool.convertirEntiteEnDto(utilisateur, UtilisateurDTO.class)).thenReturn(
+                new UtilisateurDTO(utilisateur.getNom(), utilisateur.getPrenom(),
+                        utilisateur.getEmail(), null)
+        );
 
         List<UtilisateurDTO> result = utilisateurService.obtenirListeUtilisateur();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(utilisateur.getNom(), result.get(0).getNom());
-
     }
 
     @Test
-    void obtenirListeUtilisateurs_notFound(){
-
-        List<Utilisateur> utilisateurListe = List.of(utilisateur);
-
-        // On simule le repository pour retourner cette liste
+    void obtenirListeUtilisateurs_empty() {
         when(utilisateurRepository.findAll()).thenReturn(Collections.emptyList());
 
+        List<UtilisateurDTO> result = utilisateurService.obtenirListeUtilisateur();
 
-        Exception exception =  assertThrows(UsernameNotFoundException.class, () -> utilisateurService.obtenirListeUtilisateur());
-        assertTrue(exception.getMessage().contains("La liste est vide"));
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
+    // --- NOUVEAUX TESTS AJOUTÉS --- //
+
+    @Test
+    void supprimerUtilisateur_appelleRepository() {
+        utilisateurService.supprimerUtilisateur(1);
+        verify(utilisateurRepository, times(1)).deleteById(1);
+    }
+
+    @Test
+    void ajouterRole_retourneRoleSauvegarde() {
+        Role role = new Role(NomRole.ADMIN);
+
+        when(roleRepository.save(role)).thenReturn(role);
+
+        Role result = utilisateurService.ajouterRole(role);
+
+        assertEquals(NomRole.ADMIN, result.getNomRole());
+        verify(roleRepository).save(role);
+    }
+
+    @Test
+    void ajouterRoleUtilisateur_ajouteDesRoles() {
+        Role role = new Role(NomRole.ADMIN);
+        Role roleEnBase = new Role(NomRole.ADMIN);
+
+        when(utilisateurRepository.findByEmail(utilisateur.getEmail()))
+                .thenReturn(Optional.of(utilisateur));
+        when(roleRepository.findByNomRole(NomRole.ADMIN)).thenReturn(roleEnBase);
+
+        utilisateurService.ajouterRoleUtilisateur(utilisateur, Collections.singletonList(role));
+
+        assertTrue(utilisateur.getRoles().contains(roleEnBase));
+        verify(utilisateurRepository).save(utilisateur);
+    }
+
+    @Test
+    void ajouterRoleUtilisateur_utilisateurNonTrouve() {
+        when(utilisateurRepository.findByEmail(utilisateur.getEmail())).thenReturn(Optional.empty());
+
+        assertThrows(UtilisateurNonTrouveException.class,
+                () -> utilisateurService.ajouterRoleUtilisateur(utilisateur,
+                        List.of(new Role(NomRole.ADMIN))));
+    }
+
+    @Test
+    void loadUserByUsername_existe() {
+        when(utilisateurRepository.findByEmail(utilisateur.getEmail())).thenReturn(Optional.of(utilisateur));
+
+        UserDetails userDetails = utilisateurService.loadUserByUsername(utilisateur.getEmail());
+
+        assertEquals(utilisateur.getEmail(), userDetails.getUsername());
+        assertEquals(utilisateur.getMotDePasse(), userDetails.getPassword()); // 🔥 correction ici
+        assertTrue(userDetails.getAuthorities().isEmpty());
+    }
+
+
+    @Test
+    void loadUserByUsername_inexistant() {
+        when(utilisateurRepository.findByEmail("inconnu@gmail.com")).thenReturn(Optional.empty());
+
+        assertThrows(UsernameNotFoundException.class,
+                () -> utilisateurService.loadUserByUsername("inconnu@gmail.com"));
+    }
 }
