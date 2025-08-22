@@ -1,41 +1,54 @@
 name: CI Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      # 1. Checkout du code
       - uses: actions/checkout@v4
 
+      # 2. Installation de Java
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: maven
 
+      # 3. Build + tests (inclut Jacoco)
       - name: Build and test with Maven
-        run: mvn clean verify
+        run: mvn -B verify
 
+      # 4. Génération du rapport Jacoco
       - name: Generate Jacoco Report
         run: mvn jacoco:report
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+      # 5. Analyse SonarCloud
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: http://localhost:9000
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 6. Build de l'image Docker
       - name: Build Docker image
-        run: docker build -t tonusername/mon-app:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/mon-app:latest .
 
+      # 7. Login Docker Hub (uniquement sur la branche main)
       - name: Log in to Docker Hub
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ secrets.DOCKER_USERNAME}}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # 8. Push de l'image Docker
       - name: Push Docker image
         if: github.ref == 'refs/heads/main'
-        run: docker push tonusername/mon-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/mon-app:latest
