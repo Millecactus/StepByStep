@@ -5,18 +5,6 @@ on: [push, pull_request]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
-    services:
-      sonarqube:
-        image: sonarqube:lts
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -f http://localhost:9000/api/system/health || exit 1"
-          --health-interval=30s
-          --health-timeout=10s
-          --health-retries=10
-
     steps:
       - uses: actions/checkout@v4
 
@@ -25,13 +13,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Wait for SonarQube to be healthy
-        run: |
-          until curl -s http://localhost:9000/api/system/health | grep -q "UP"; do
-            echo "Waiting for SonarQube to be healthy..."
-            sleep 10
-          done
 
       - name: Build and test with Maven
         run: mvn clean verify
