@@ -83,6 +83,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/mouvements/**").permitAll()
                         .requestMatchers("/api/v1/bloc/**").permitAll()
                         .requestMatchers("/api/v1/choregraphieDeStep/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html","/swagger-resources/**","/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
