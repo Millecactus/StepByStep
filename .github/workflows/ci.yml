@@ -38,6 +38,7 @@ jobs:
 
       # 6. Build de l'image Docker
       - name: Build Docker image
+        # Appelle l'image définie par le DockerFile
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/mon-app:latest .
 
       # 7. Login Docker Hub (uniquement sur la branche main)

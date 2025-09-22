@@ -77,6 +77,9 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/utilisateur/inscription").permitAll()
                         .requestMatchers("/api/v1/utilisateur/connexion").permitAll()
+/*
+                        .requestMatchers("/api/v1/utilisateur/ajouter-roles").permitAll()
+*/
                         .requestMatchers("/api/v1/utilisateur/ajouter-roles").hasRole(NomRole.ADMIN.name())
                         .requestMatchers("/api/v1/utilisateur/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole(NomRole.ADMIN.name())
@@ -98,6 +101,7 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
 
 
 }

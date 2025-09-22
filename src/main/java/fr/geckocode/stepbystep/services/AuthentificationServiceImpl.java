@@ -1,11 +1,14 @@
 package fr.geckocode.stepbystep.services;
 
+import fr.geckocode.stepbystep.entities.Role;
 import fr.geckocode.stepbystep.entities.Utilisateur;
 import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurDTOSansMdp;
 import fr.geckocode.stepbystep.entities.dto.UtilisateurReponseDTO;
+import fr.geckocode.stepbystep.enums.NomRole;
 import fr.geckocode.stepbystep.mappers.MapperTool;
+import fr.geckocode.stepbystep.repositories.RoleRepository;
 import fr.geckocode.stepbystep.repositories.UtilisateurRepository;
 import fr.geckocode.stepbystep.securite.CustomPasswordEncoder;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +21,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 public class AuthentificationServiceImpl implements IAuthentificationService {
 
 
     private final UtilisateurRepository utilisateurRepository;
+    private final RoleRepository roleRepository;
     private final MapperTool mapperTool;
     private final CustomPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -44,6 +50,11 @@ public class AuthentificationServiceImpl implements IAuthentificationService {
         String motDePasseEncode = passwordEncoder.encode(dto.getMotDePasse());
         //Application du mot de apsse encode
         utilisateur.setMotDePasse(motDePasseEncode);
+
+        // Récupère le rôle USER
+        Role roleUser = roleRepository.findByNomRole(NomRole.ADMIN)
+                .orElseThrow(() -> new IllegalStateException("Role USER non trouvé"));
+        utilisateur.setRoles(Collections.singletonList(roleUser));
 
         //persiste en db
         utilisateurRepository.save(utilisateur);

@@ -1,7 +1,6 @@
 package fr.geckocode.stepbystep.integration;
 
 import fr.geckocode.stepbystep.entities.dto.LoginRequestDTO;
-import fr.geckocode.stepbystep.entities.dto.UtilisateurDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

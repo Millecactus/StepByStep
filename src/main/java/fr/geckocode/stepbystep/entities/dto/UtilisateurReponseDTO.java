@@ -7,7 +7,6 @@ import lombok.Data;
 @Builder
 public class UtilisateurReponseDTO {
     public String message;
-//    private String email;
     public String token;
     public UtilisateurDTOSansMdp utilisateur;
 

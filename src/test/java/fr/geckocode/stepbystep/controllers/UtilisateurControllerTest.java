@@ -18,34 +18,45 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class UtilisateurControllerTest {
 
+/**
+ * Classe de tests unitaires pour {@link UtilisateurController}.
+ **/
+class UtilisateurControllerTest {
+    /** Simulation du service de gestion des utilisateurs. */
     @Mock
     private IUtilisateurService utilisateurService;
 
+    /** Simulation du service d'authentification. */
     @Mock
     private IAuthentificationService authentificationService;
 
+    /** Simulation du repository des roles. */
     @Mock
     private RoleRepository roleRepository;
 
+    /** Simulation du service de gestion des JWT. */
     @Mock
     private JwtService jwtService;
 
+    /** Contrôleur testé avec injection des mocks précédents. */
     @InjectMocks
     private UtilisateurController utilisateurController;
-
     private Utilisateur utilisateur;
     private UtilisateurDTO utilisateurDTO;
     private UtilisateurReponseDTO utilisateurReponseDTO;
     private LoginRequestDTO loginRequest;
 
+    /**
+     * Initialise les objets et les mocks avant chaque test.
+     */
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -72,13 +83,19 @@ class UtilisateurControllerTest {
     }
 
 
-
+    /**
+     * Vérifie que l'endpoint sayHello retourne bien "Hello world".
+     */
     @Test
     void testSayHello() {
         String result = utilisateurController.sayHello();
         assertEquals("Hello world", result);
     }
 
+    /**
+     * Teste que l'inscription via le contrôleur
+     * appelle le service d'authentification et retourne la bonne réponse.
+     */
     @Test
     void testInscription() {
         when(authentificationService.inscription(any(UtilisateurDTO.class)))
@@ -91,6 +108,10 @@ class UtilisateurControllerTest {
         verify(authentificationService, times(1)).inscription(utilisateurDTO);
     }
 
+
+    /**
+     * Teste la connexion d'un utilisateur avec le service d'authentification.
+     */
     @Test
     void testConnexion() {
 
@@ -98,7 +119,6 @@ class UtilisateurControllerTest {
                 .motDePasse("test@test.com")
                 .email("mdp")
                 .build();
-
 
         when(authentificationService.connexion(loginRequest))
                 .thenReturn(ResponseEntity.ok(utilisateurReponseDTO));
@@ -109,6 +129,9 @@ class UtilisateurControllerTest {
         verify(authentificationService, times(1)).connexion(loginRequest);
     }
 
+    /**
+     * Teste la récupération d'un utilisateur spécifique selon son identifiant.
+     */
     @Test
     void testObtenirUtilisateur() {
         when(utilisateurService.obtenirUtilisateur(1)).thenReturn(utilisateur);
@@ -120,6 +143,9 @@ class UtilisateurControllerTest {
         verify(utilisateurService).obtenirUtilisateur(1);
     }
 
+    /**
+     * Vérifie que la suppression d'un utilisateur appelle le service adéquat.
+     */
     @Test
     void testSupprimerUtilisateur() {
         doNothing().when(utilisateurService).supprimerUtilisateur(1);
@@ -128,6 +154,9 @@ class UtilisateurControllerTest {
         verify(utilisateurService).supprimerUtilisateur(1);
     }
 
+    /**
+     * Vérifie l'extraction de l'identifiant utilisateur depuis un JWT contenu dans la requête HTTP.
+     */
     @Test
     void testGetCurrentUserId_success() {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -140,6 +169,9 @@ class UtilisateurControllerTest {
         verify(jwtService).extractClaim(eq("fake-jwt"), any(Function.class));
     }
 
+    /**
+     * Vérifie la gestion d'une requête sans JWT, attend une exception spécifique.
+     */
     @Test
     void testGetCurrentUserId_missingJwt() {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -150,6 +182,10 @@ class UtilisateurControllerTest {
         assertEquals("JWT manquant ou invalide", ex.getMessage());
     }
 
+    /**
+     * Teste l'ajout de plusieurs rôles à un utilisateur
+     * et vérifie que chaque rôle est bien traité et que le service métier est correctement appelé.
+     */
     @Test
     void ajouterRolesUtilisateur_ShouldAddRolesAndReturnSuccessMessage() {
         // Arrange
@@ -164,8 +200,9 @@ class UtilisateurControllerTest {
         roleAdmin.setNomRole(NomRole.ADMIN);
 
         // Mock des appels
-        when(roleRepository.findByNomRole(NomRole.USER)).thenReturn(roleUser);
-        when(roleRepository.findByNomRole(NomRole.ADMIN)).thenReturn(roleAdmin);
+        when(roleRepository.findByNomRole(NomRole.USER)).thenReturn(Optional.of(roleUser));
+        when(roleRepository.findByNomRole(NomRole.ADMIN)).thenReturn(Optional.of(roleAdmin));
+
 
         // Act
         ResponseEntity<?> response = utilisateurController.ajouterRolesUtilisateur(request);
@@ -194,7 +231,9 @@ class UtilisateurControllerTest {
         assertTrue(capturedRoles.contains(roleAdmin));
     }
 
-
+    /**
+     * Vérifie que l'endpoint de déconnexion retourne le bon message et le bon code HTTP.
+     */
     @Test
     void testLogout() {
         ResponseEntity<String> response = utilisateurController.logout();

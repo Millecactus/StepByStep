@@ -39,6 +39,7 @@ public class JwtService {
         // On récupère la liste des rôles de l'utilisateur pour l'ajouter comme claim
         List<String> roles = new ArrayList<>();
         for (GrantedAuthority authority : userDetail.getAuthorities()) {
+            System.out.println("Authority: " + authority.getAuthority());
             roles.add(authority.getAuthority()); // Ajoute chaque rôle/autorité à la liste
         }
         // Ajoute la liste des rôles (ou autorités) dans les claims sous la clé "roles"

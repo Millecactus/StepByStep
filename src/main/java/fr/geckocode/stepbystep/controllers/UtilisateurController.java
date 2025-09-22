@@ -124,8 +124,10 @@ public class UtilisateurController {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(request.getEmail());
         List<Role> roles = request.getRoles().stream()
-                .map(role -> roleRepository.findByNomRole(role))
+                .map(role -> roleRepository.findByNomRole(role)
+                        .orElseThrow(() -> new IllegalStateException("Role non trouvé: " + role)))
                 .collect(Collectors.toList());
+
         utilisateurService.ajouterRoleUtilisateur(utilisateur, roles);
         return ResponseEntity.ok("Rôles ajoutés à l'utilisateur " + request.getEmail());
     }
@@ -138,6 +140,28 @@ public class UtilisateurController {
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok("Déconnexion effectuée. Merci de supprimer le token côté client.");
     }
+
+
+    @GetMapping(value = "/email/{email}")
+    @Operation(summary = "Obtenir utilisateur par email", description = "Récupérer un utilisateur à partir de son email")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Utilisateur trouvé", content = @Content(schema = @Schema(implementation = Utilisateur.class))),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Erreur serveur", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Utilisateur> obtenirUtilisateurParEmail(
+            @Parameter(description = "Email de l'utilisateur", required = true)
+            @PathVariable String email) {
+        try {
+            Utilisateur utilisateurObtenu = utilisateurService.obtenirParEmail(email);
+            return ResponseEntity.ok(utilisateurObtenu);
+        } catch (UtilisateurNonTrouveException e) {
+            return ResponseEntity.status(404).body(null); // ou créer un ErrorResponse si tu veux
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null); // erreur technique
+        }
+    }
+
 
 }
 

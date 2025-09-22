@@ -22,41 +22,60 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ *
+ * Classe de test unitaire pour {@link UtilisateurServiceImpl}.
+ * Elle utilise Mockito pour simuler les dépendances et JUnit pour valider
+ * le comportement du service concernant la gestion des utilisateurs et des rôles
+ * */
+
 public class UtilisateurServiceImplTest {
 
+    /** Simulation du repository des utilisateurs. */
     @Mock
     UtilisateurRepository utilisateurRepository;
 
+    /** Simulation du mapper Entités <-> DTOs */
     @Mock
     MapperTool mapperTool;
 
+    /** Simulation du repository des roles. */
     @Mock
     RoleRepository roleRepository;
 
+    /** Simulation du repository des choregraphies de step. */
     @Mock
     ChoregraphieStepRepository choregraphieStepRepository;
 
+    /** Service à tester, injecté avec les dépendances simulées. */
     @InjectMocks
     UtilisateurServiceImpl utilisateurService;
 
+    /** Instance d'utilisateur exemple utilisée dans les tests. */
     private Utilisateur utilisateur;
 
+    /**
+     * Méthode exécutée avant chaque test pour initialiser les mocks et créer l'utilisateur d'exemple.
+     */
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
         utilisateur = new Utilisateur(
                 1,
-                "Segond",
-                "Guillaume",
-                "guigui12",
-                "guigui@gmail.com",
+                "test",
+                "Johnny",
+                "JohnnyTest12!",
+                "johnny@test.com",
                 null,
                 new ArrayList<>(List.of(new Role(NomRole.USER)))
         );
     }
 
-    // --- TESTS EXISTANTS (les tiens) --- //
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#obtenirUtilisateur(Integer)}} retourne
+     * l'utilisateur quand il existe en base.
+     */
 
     @Test
     void testObtenirUtilisateur_Success() {
@@ -68,6 +87,10 @@ public class UtilisateurServiceImplTest {
         assertEquals(utilisateur.getIdUtilisateur(), result.getIdUtilisateur());
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#obtenirUtilisateur(Integer)} lève une
+     * exception {@link UtilisateurNonTrouveException} si l'utilisateur n'existe pas.
+     */
     @Test
     void testObtenirUtilisateur_notFound() {
         when(utilisateurRepository.findById(18)).thenReturn(Optional.empty());
@@ -78,6 +101,10 @@ public class UtilisateurServiceImplTest {
         assertTrue(exception.getMessage().contains("identifiant 18 non trouvé"));
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#obtenirListeUtilisateur()} retourne
+     * la liste transformée en DTO quand des utilisateurs existent.
+     */
     @Test
     void obtenirListeUtilisateurs_Success() {
         List<Utilisateur> utilisateurListe = List.of(utilisateur);
@@ -95,6 +122,11 @@ public class UtilisateurServiceImplTest {
         assertEquals(utilisateur.getNom(), result.get(0).getNom());
     }
 
+
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#obtenirListeUtilisateur()} retourne une liste vide
+     * quand il n’existe aucun utilisateur.
+     */
     @Test
     void obtenirListeUtilisateurs_empty() {
         when(utilisateurRepository.findAll()).thenReturn(Collections.emptyList());
@@ -105,7 +137,10 @@ public class UtilisateurServiceImplTest {
         assertTrue(result.isEmpty());
     }
 
-    // --- NOUVEAUX TESTS AJOUTÉS --- //
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#supprimerUtilisateur(Integer)}}
+     * appelle la méthode de suppression du repository.
+     */
 
     @Test
     void supprimerUtilisateur_appelleRepository() {
@@ -113,6 +148,9 @@ public class UtilisateurServiceImplTest {
         verify(utilisateurRepository, times(1)).deleteById(1);
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#ajouterRole(Role)} sauvegarde et retourne le rôle.
+     */
     @Test
     void ajouterRole_retourneRoleSauvegarde() {
         Role role = new Role(NomRole.ADMIN);
@@ -125,6 +163,10 @@ public class UtilisateurServiceImplTest {
         verify(roleRepository).save(role);
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#ajouterRoleUtilisateur(Utilisateur, List)}
+     * ajoute le rôle à l'utilisateur et sauvegarde la modification.
+     */
     @Test
     void ajouterRoleUtilisateur_ajouteDesRoles() {
         Role role = new Role(NomRole.ADMIN);
@@ -132,7 +174,7 @@ public class UtilisateurServiceImplTest {
 
         when(utilisateurRepository.findByEmail(utilisateur.getEmail()))
                 .thenReturn(Optional.of(utilisateur));
-        when(roleRepository.findByNomRole(NomRole.ADMIN)).thenReturn(roleEnBase);
+        when(roleRepository.findByNomRole(NomRole.ADMIN)).thenReturn(Optional.of(roleEnBase));
 
         utilisateurService.ajouterRoleUtilisateur(utilisateur, Collections.singletonList(role));
 
@@ -140,6 +182,10 @@ public class UtilisateurServiceImplTest {
         verify(utilisateurRepository).save(utilisateur);
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#ajouterRoleUtilisateur(Utilisateur, List)}
+     * lance une exception si l'utilisateur n'est pas trouvé.
+     */
     @Test
     void ajouterRoleUtilisateur_utilisateurNonTrouve() {
         when(utilisateurRepository.findByEmail(utilisateur.getEmail())).thenReturn(Optional.empty());
@@ -149,6 +195,10 @@ public class UtilisateurServiceImplTest {
                         List.of(new Role(NomRole.ADMIN))));
     }
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#loadUserByUsername(String)}
+     * retourne l’utilisateur existant sous forme de {@link UserDetails}.
+     */
     @Test
     void loadUserByUsername_existe() {
         when(utilisateurRepository.findByEmail(utilisateur.getEmail())).thenReturn(Optional.of(utilisateur));
@@ -161,6 +211,10 @@ public class UtilisateurServiceImplTest {
     }
 
 
+    /**
+     * Vérifie que {@link UtilisateurServiceImpl#loadUserByUsername(String)}
+     * lance une exception {@link UsernameNotFoundException} si l'utilisateur n'est pas trouvé.
+     */
     @Test
     void loadUserByUsername_inexistant() {
         when(utilisateurRepository.findByEmail("inconnu@gmail.com")).thenReturn(Optional.empty());
